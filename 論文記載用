@@ -1,0 +1,54 @@
+from pathlib import Path
+import os
+
+from mmpose.apis import MMPoseInferencer
+
+
+def run_mmpose_on_path(
+    input_path: str,
+    pred_out_dir: str,
+    vis_out_dir: str,
+) -> None:
+    # Cache directories are redirected into the project workspace so that
+    # model weights and matplotlib cache can be written safely.
+    os.environ["TORCH_HOME"] = "/Users/yuki/Downloads/mmpose/public/.cache/torch"
+    os.environ["MPLCONFIGDIR"] = "/Users/yuki/Downloads/mmpose/public/.cache/mpl"
+
+    inferencer = MMPoseInferencer(
+        pose2d="human",
+        det_model="/Users/yuki/Downloads/mmpose/demo/mmdetection_cfg/rtmdet_m_640-8xb32_coco-person.py",
+        det_weights="https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/rtmdet_m_8xb32-100e_coco-obj365-person-235e8209.pth",
+        det_cat_ids=[0],
+        device="cpu",
+    )
+
+    results = inferencer(
+        inputs=input_path,
+        bbox_thr=0.3,
+        nms_thr=0.3,
+        kpt_thr=0.3,
+        pred_out_dir=pred_out_dir,
+        vis_out_dir=vis_out_dir,
+        draw_bbox=False,
+        draw_heatmap=False,
+        show=False,
+    )
+
+    # The inferencer returns a generator, so iteration is required.
+    for _ in results:
+        pass
+
+
+if __name__ == "__main__":
+    input_path = "/Users/yuki/Downloads/mmpose/public/img"
+    pred_out_dir = "/Users/yuki/Downloads/mmpose/public/img_predictions"
+    vis_out_dir = "/Users/yuki/Downloads/mmpose/public/img_visualizations"
+
+    Path(pred_out_dir).mkdir(parents=True, exist_ok=True)
+    Path(vis_out_dir).mkdir(parents=True, exist_ok=True)
+
+    run_mmpose_on_path(
+        input_path=input_path,
+        pred_out_dir=pred_out_dir,
+        vis_out_dir=vis_out_dir,
+    )
